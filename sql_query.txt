@@ -1,0 +1,106 @@
+/*
+DECLARE @businessDate datetime
+SET @businessDate = '2018-02-15 00:00:00'
+*/
+
+/* Tax */
+SELECT 
+'Tax' AS Category, 
+'Tax' AS Name, 
+NULL AS SalesCategory, 
+SUM(tax_ttl) AS Amount 
+
+FROM micros.chk_dtl cd
+LEFT JOIN 
+(select distinct chk_seq, business_date from micros.trans_dtl) 
+td ON td.chk_seq = cd.chk_seq
+
+WHERE td.business_date=@businessDate AND ob_ccs04_chk_added='F'
+
+UNION ALL
+
+/* Discounts */ 
+SELECT 
+'Discount' AS Category, 
+discount_name AS Name, 
+mgd.name AS SalesCategory,
+SUM(discount_amount) AS Amount 
+
+from micros.v_R_discount_dtl disc 
+LEFT JOIN micros.mi_def md ON md.mi_seq = disc.mi_seq
+LEFT JOIN micros.maj_grp_def mgd ON md.maj_grp_seq = mgd.maj_grp_seq
+
+WHERE business_date=@businessDate GROUP BY mgd.name, discount_name
+ 
+UNION ALL
+
+/* Tenders */
+SELECT 'Tender' AS Category, 
+tmdf.name AS Name, 
+NULL AS SalesCategory, 
+SUM(d.chk_ttl) AS Amount 
+
+FROM micros.dtl d
+LEFT JOIN micros.trans_dtl td ON td.trans_seq = d.trans_Seq
+LEFT JOIN micros.tmed_dtl tm ON 
+d.dtl_seq = tm.dtl_seq AND 
+tm.trans_seq = d.trans_seq
+LEFT JOIN micros.tmed_def tmdf ON tmdf.tmed_seq = tm.tmed_seq
+
+WHERE td.business_date=@businessDate AND 
+dtl_type='T' AND 
+tmdf.type='T' 
+GROUP BY tmdf.name
+
+UNION ALL
+
+/* Service Charges */
+SELECT 
+'Service Charge' AS Category, 
+dsdf.name AS Name, 
+NULL AS SalesCategory, 
+SUM(d.chk_ttl) AS Amount 
+
+FROM micros.dtl d
+LEFT JOIN micros.trans_dtl td ON td.trans_seq = d.trans_Seq
+LEFT JOIN micros.dsvc_dtl ds ON 
+d.dtl_seq = ds.dtl_seq AND 
+ds.trans_seq = d.trans_seq
+LEFT JOIN micros.dsvc_def dsdf ON dsdf.dsvc_seq = ds.dsvc_seq
+
+WHERE td.business_date=@businessDate AND 
+dsdf.type='S' AND dsdf.ob_svc18_add_to_tips_paid='F' 
+GROUP BY dsdf.name
+
+UNION ALL
+
+/* Net Sales by Category */
+SELECT 
+'Sales' AS Category, 
+'Net Sales' AS Name, 
+group_name AS SalesCategory, 
+SUM(P1_sales_total+p1_discount_total) AS Amount 
+
+FROM "micros"."v_R_sys_menuitem_maj_grp" 
+
+WHERE business_date = @businessDate 
+GROUP BY group_name
+
+UNION ALL 
+
+/* Tips */
+SELECT 
+'Tips' AS Category, 
+'Tips Paid' AS Name, 
+NULL AS SalesCategory, 
+SUM(d.chk_ttl) AS Amount 
+
+FROM micros.dtl d
+LEFT JOIN micros.trans_dtl td ON td.trans_seq = d.trans_Seq
+LEFT JOIN micros.dsvc_dtl ds ON 
+d.dtl_seq = ds.dtl_seq AND 
+ds.trans_seq = d.trans_seq
+LEFT JOIN micros.dsvc_def dsdf ON dsdf.dsvc_seq = ds.dsvc_seq
+WHERE td.business_date=@businessDate 
+AND dsdf.type='S' AND 
+dsdf.ob_svc18_add_to_tips_paid='T'
