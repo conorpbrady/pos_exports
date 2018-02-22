@@ -1,0 +1,21 @@
+/*
+DECLARE @businessDate datetime
+SET @businessDate = '2018-02-15 00:00:00'
+*/
+
+SELECT 
+
+rvc_number,
+group_number,
+mi_seq,
+menuitem_name1,
+P1_sales_qty, 
+
+/* Net Sales */
+P1_sales_total
+
+/* Gross Sales */
+/* Price1 * P1_sales_qty */
+
+FROM micros.v_R_rvc_menuitem_maj_grp 
+WHERE business_date = @businessDate

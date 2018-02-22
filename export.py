@@ -1,5 +1,5 @@
-from pointofsale import PointOfSale
-from connection import Connection
+from lib.pointofsale import PointOfSale
+from lib.connection import Connection
 import argparse
 import configparser
 import datetime
