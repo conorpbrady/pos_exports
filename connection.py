@@ -4,12 +4,12 @@ import paramiko
 class Connection:
 
     @staticmethod
-    def get_connection_class(connection_type, config):
-        if connection_type.lower() == 'FTP'.lower():
+    def connection_class(connection_type, config):
+        if connection_type.lower() == 'ftp':
             return FTP(config)
-        elif connection_type.lower() == 'SFTP'.lower():
+        elif connection_type.lower() == 'sftp':
             return SFTP(config)
-        elif connection_type.lower() == 'cURL'.lower():
+        elif connection_type.lower() == 'curl':
             return Curl(config)
         
     def __init__(self, host):
@@ -111,7 +111,3 @@ class Curl(Connection):
     def close(self):
         c.close()   
 
-
-
-
-    pass
