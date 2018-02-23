@@ -26,10 +26,13 @@ class PointOfSale:
             query_string = file_handle.read().replace('\r\n','')
         return query_string
 
-    def gather_pos_data():
+    def gather_pos_data(self):
         pass
 
-    def format_pos_data():
+    def format_data(self):
+        pass
+
+    def clean_up(self):
         pass
 
     def write_file(self, filename):
@@ -80,7 +83,6 @@ class Micros3700(PointOfSale):
             self.db_name,
             self.sql_query
             ]
-        #print(' '.join(map(lambda s: s.replace('\n',' '), cmd)))
 
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         out, err = p.communicate()
@@ -97,42 +99,28 @@ class Micros3700(PointOfSale):
         self.load_query_from_file()
         self.run_query()
         self.load_query_results()
-
-    def format_data(self):
-        pass
-
-    def clean_up(self):
-        pass
-    
-    #def write_file(self, filename):
-    #    with open(filename, 'w') as w:
-    #        file_writer = csv.writer(w)
-    #        for row in self.results:
-    #            file_writer.writerow(row)
-        
-
-    #def as_float(string):
-    #    return '{:.2f}'.format(string.strip('$'))
-
-
+   
 
 class Simphony2(PointOfSale):
 
-    def __init__(self, config, date_to_run):
+    def __init__(self, config):
         self.db_user = config['User']
         self.db_pass = config['Password']
         self.results = []
         self.sql_query = ''
+        self.query_path = config['QueryFilePath']
+
+    def set_run_date(self, date_to_run):
         self.start_date = date_to_run
-        self.end_date = datetime.date.fromordinal(date_to_run.toordinal()-1)
+        self.end_date = datetime.date.fromordinal(date_to_run.toordinal()+1)
         
 
 
-    def gather_pos_data():
-        sql_query = "DECLARE @yDay datetime;DECLARE @tDay datetime;" \
-                "SET @yDay='" + self.start_date.isoformat() + " 04:00:00';" \
-                "SET @tDay='" + self.end_date.isoformat() + " 04:00:00';"
-        sql_query += super().load_sql_query_from_file('sqlQuery.txt');
+    def gather_pos_data(self):
+        sql_query = "DECLARE @startDate datetime;DECLARE @endDate datetime;" \
+                "SET @startDate='" + self.start_date.isoformat() + " 04:00:00';" \
+                "SET @endDate='" + self.end_date.isoformat() + " 04:00:00';"
+        sql_query += super().load_query_from_file()
 
         cmd = [
             "sqlcmd",
@@ -146,12 +134,18 @@ class Simphony2(PointOfSale):
             "-w","700",
             "-W"
             ]
-
+        
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         out, err = p.communicate()
         sales_list = out.decode(encoding='UTF-8').split('\r\n')
-    
-        results = sales_list[:-3]
+
+        self.results = sales_list[:-3]
+
+    def format_data(self):
+        temp = []
+        for row in self.results:
+            temp.append(row.split(','))
+        self.results = temp
 
 class Infogenesis(PointOfSale):
     pass

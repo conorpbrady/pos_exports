@@ -1,0 +1,155 @@
+/* 
+SET ANSI_WARNINGS OFF;
+DECLARE @startDate datetime
+DECLARE @endDate datetime;
+SET @startDate = '2018-02-15 12:00:00';
+SET @endDate = '2018-02-16 12:00:00';
+*/
+
+(
+/* Tenders/Cash */
+SELECT 'Tender' AS Category, st.StringText AS Name, 
+NULL as SalesCategory,
+SUM(Amount1) AS Amount FROM TOTALS ttl
+LEFT JOIN TENDER_MEDIA tm ON ttl.Data1 = tm.TendMedID
+LEFT JOIN STRING_TABLE st ON tm.NameID = st.StringNumberID
+WHERE ttl.PostingTime > @startDate AND ttl.PostingTime < @endDate
+AND TtlType = 9 GROUP BY st.StringText
+)
+UNION ALL
+(
+/* Tax */
+SELECT 'Tax' AS Category, 'Sales Tax' AS Name, 
+NULL as SalesCategory,
+SUM(Amount1) AS Amount FROM TOTALS ttl 
+LEFT JOIN DISCOUNT d ON d.DscntID = ttl.Data1
+LEFT JOIN STRING_TABLE st ON st.StringNumberID = d.NameID
+WHERE ttl.PostingTime > @startDate AND ttl.PostingTime < @endDate
+AND TtlType=21
+)
+UNION ALL
+(
+/* Service Charges */
+SELECT 'Service Charges' AS Category, st.StringText AS Name, 
+NULL as SalesCategory,
+SUM(Amount1) AS Amount FROM TOTALS ttl
+LEFT JOIN SERVICE_CHARGE sc ON ttl.Data1 = sc.SvcChgID
+LEFT JOIN STRING_TABLE st ON sc.NameID = st.StringNumberID
+WHERE ttl.PostingTime > @startDate AND ttl.PostingTime < @endDate
+AND (TtlType=5 or TtlType=6)
+GROUP BY st.StringText 
+)
+UNION ALL
+(
+/* Sales By Category */
+SELECT 'Sales' AS Category, 
+'Net Sales' as Name,
+majName.StringText AS SalesCategory, 
+ROUND(SUM(COALESCE(cd.Total,0) * discFactor.Factor),2) AS Amount
+FROM CHECK_DETAIL cd 
+LEFT JOIN
+	(
+	SELECT c.CheckID, 
+	1+(COALESCE(d.totalDisc,0) / NULLIF(SUM(Total),0)) AS factor
+	FROM check_detail c
+	LEFT JOIN
+		(
+		SELECT CheckID, SUM(Total) AS totalDisc FROM check_detail
+		where DetailType = 2 AND 
+		DetailPostingTime >= @startDate AND 
+		DetailPostingTime < @endDate GROUP BY CheckID
+		) d
+	ON d.CheckID = c.CheckID 
+	where DetailType =1 AND
+	DetailPostingTime >= @startDate AND 
+    DetailPostingTime < @endDate 
+	GROUP BY c.CheckID, d.totalDisc
+	) discFactor
+ON discFactor.checkID = cd.checkID
+LEFT JOIN 
+	(
+	SELECT DISTINCT objectnumber, majgrpobjnum, NameID 
+	FROM MENU_ITEM_MASTER
+	) mim 
+ON cd.ObjectNumber = mim.ObjectNumber 
+LEFT JOIN CHECKS ch ON ch.CheckID = cd.CheckID 
+LEFT JOIN STRING_TABLE st ON mim.NameID = st.StringNumberID
+LEFT JOIN 
+	(
+	SELECT hu.RevCtrID, rs.StringText FROM HIERARCHY_UNIT hu
+	LEFT JOIN STRING_TABLE rs ON rs.StringNumberID = hu.NameID
+	) rvcName 
+ON rvcName.RevCtrID = cd.RevCtrID
+LEFT JOIN
+	(
+	SELECT mg.ObjectNumber, ms.StringText FROM MAJOR_GROUP mg
+	LEFT JOIN STRING_TABLE ms ON ms.StringNumberID = mg.NameID
+	) majName 
+ON majName.ObjectNumber = mim.MajGrpObjNum
+WHERE 
+DetailPostingTime >= @startDate AND 
+DetailPostingTime < @endDate AND
+cd.DetailType=1 AND ch.AddedToCheckNum IS NULL AND 
+ch.ReopenedtoCheckGUID IS NULL
+GROUP BY majName.StringText
+)
+UNION ALL
+(
+/* Discounts By Category */
+SELECT 'Discounts' AS Category, 
+COALESCE(discFactor.DiscType,'') AS Name, 
+COALESCE(majName.StringText,'') as SalesCategory,
+ROUND(SUM(COALESCE(cd.Total,0) * (1-discFactor.Factor)*-1),2) AS Amount
+FROM CHECK_DETAIL cd 
+LEFT JOIN
+	(
+	SELECT c.CheckID, 
+	1+(COALESCE(d.totalDisc,0) / NULLIF(SUM(Total),0)) AS factor,
+	d.DiscType
+	FROM check_detail c
+	LEFT JOIN
+		(
+		SELECT CheckID, STRING_TABLE.StringText as DiscType, 
+		SUM(Total) AS totalDisc FROM CHECK_DETAIL
+		LEFT JOIN DISCOUNT on CHECK_DETAIL.ObjectNumber = DISCOUNT.ObjectNumber
+		LEFT JOIN STRING_TABLE on DISCOUNT.NameID = STRING_TABLE.StringNumberID
+		where DetailType = 2 AND 
+		DetailPostingTime >= @startDate AND 
+		DetailPostingTime < @endDate GROUP BY CheckID, STRING_TABLE.StringText
+		) d
+	ON d.CheckID = c.CheckID 
+	where DetailType =1 AND
+	DetailPostingTime >= @startDate AND 
+    DetailPostingTime < @endDate 
+	GROUP BY c.CheckID, d.totalDisc, d.DiscType
+	) discFactor
+ON discFactor.checkID = cd.checkID
+LEFT JOIN 
+	(
+	SELECT DISTINCT objectnumber, majgrpobjnum, NameID 
+	FROM MENU_ITEM_MASTER
+	) mim 
+ON cd.ObjectNumber = mim.ObjectNumber 
+LEFT JOIN CHECKS ch ON ch.CheckID = cd.CheckID 
+LEFT JOIN STRING_TABLE st ON mim.NameID = st.StringNumberID
+LEFT JOIN 
+	(
+	SELECT hu.RevCtrID, rs.StringText FROM HIERARCHY_UNIT hu
+	LEFT JOIN STRING_TABLE rs ON rs.StringNumberID = hu.NameID
+	) rvcName 
+ON rvcName.RevCtrID = cd.RevCtrID
+LEFT JOIN
+	(
+	SELECT mg.ObjectNumber, ms.StringText FROM MAJOR_GROUP mg
+	LEFT JOIN STRING_TABLE ms ON ms.StringNumberID = mg.NameID
+	) majName 
+ON majName.ObjectNumber = mim.MajGrpObjNum
+WHERE 
+DetailPostingTime >= @startDate AND 
+DetailPostingTime < @endDate AND
+cd.DetailType=1 AND ch.AddedToCheckNum IS NULL AND 
+ch.ReopenedtoCheckGUID IS NULL AND
+discFactor.DiscType IS NOT NULL
+
+GROUP BY majName.StringText, DiscType
+)
