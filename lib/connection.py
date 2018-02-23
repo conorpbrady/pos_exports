@@ -21,6 +21,9 @@ class Connection:
     def upload_file(filename):
         pass
 
+    def change_remote_directory(self, remote_path):
+        pass
+
 
 class FTP(Connection):
 
@@ -87,7 +90,7 @@ class Curl(Connection):
         # cmd-line option:
         # >curl -k --header "Csrf-token: nocheck" --form "report=@filename” URL
 
-        self.url = config['Host'] + config['URL_ID']
+        self.url = '{}{}'.format(config['Host'], config['URL_ID'])
 
         c = pycurl.Curl() # curl
         c.setopt(c.SSL_VERIFYPEER, 0) # -k

@@ -2,6 +2,7 @@ import datetime
 import csv
 import subprocess
 import os
+import re
 
 # These imports are imported into the PointOfSale factory method
 #from lib.micros3700 import Micros3700
@@ -21,7 +22,6 @@ class PointOfSale:
         elif pos_type.lower() == 'infogenesis':
             from lib.infogenesis import Infogenesis
             return infogenesis.Infogenesis(config)
-
 
     def __init__(self):
         pass
@@ -58,6 +58,21 @@ class PointOfSale:
     def get_yesterday():
         return datetime.date.fromordinal(datetime.date.today().toordinal()-1)
 
+    def format_as_currency(self, string):
+        # This should be ran on all fields processed
+        # If this is a currency field, format to 2 decimal places
+        #  Should match: '4.0000','.0000','-3.2300004'
+        #  Should not match: 'Tips','Hot and Sour Soup','3','Ch. Margaeux'
+        #  RegEx: /(-?[0-9]*\.[0-9]+)/g
+        
+        pattern = re.compile('(-?[0-9]*\.[0-9]+)')
+        return re.sub(pattern,
+                      lambda match: '{0:.2f}'.format(float(match.group(0))),
+                      string)
+        
 
+        
+        
 
+        
 

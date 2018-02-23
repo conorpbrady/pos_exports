@@ -16,7 +16,7 @@ class Micros3700(PointOfSale):
         query_string = super().load_query_from_file()        
 
         footer = "; OUTPUT TO {} DELIMITED by ','".format(self.temp_file_path)
-        self.sql_query = query_string + footer
+        self.sql_query = '{}{}'.format(query_string, footer)
         self.replace_sql_variable('@businessDate', self.business_date)
             
     def replace_sql_variable(self, string, d):
@@ -24,11 +24,11 @@ class Micros3700(PointOfSale):
 
     def run_query(self):
         cmd = [
-            "dbisql",
-            "-c",
-            "uid=" + self.db_user + ";pwd=" + self.db_pass,
-            "-d",";",
-            "-datasource",
+            'dbisql',
+            '-c',
+            'uid={};pwd={}'.format(self.db_user,self.db_pass),
+            '-d',';',
+            '-datasource',
             self.db_name,
             self.sql_query
             ]
