@@ -13,7 +13,7 @@ def main():
                         help='Date to run as mm-dd-yyy')
 
     config = configparser.ConfigParser()
-    config.read('settings.ini')
+    config.read('settings\\settings.ini')
 
     args = parser.parse_args()
 
