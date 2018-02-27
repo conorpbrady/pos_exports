@@ -1,0 +1,15 @@
+"C",1,"Food",1
+"C",2,"Liquor",2
+"C",3,"Beer",2
+"C",4,"Wine",2
+"C",5,"Non-Alcoh Bev",3
+"C",6,"Misc Tax",4
+"C",7,"Misc Non Tax",4
+"C",8,"Admission",4
+"C",9,"Gratuity",4
+"C",10,"Labor",4
+"C",11,"Equipment Rental",4
+"C",12,"Services",4
+"C",13,"Other",4
+"C",14,"Not Used",4
+"C",15,"Room Rental",4

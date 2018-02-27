@@ -1,0 +1,74 @@
+
+/* Net Sales */
+SELECT 
+'Sales' as Category,
+'Net Sales' as Name,
+dept.Maj_Grp_Name as SalesCategory,
+SUM(item.Sales_Amount - item.Discount_Amount) as Amount
+FROM OIT_ITEM item
+LEFT JOIN MI_EXP mi on mi.Item_ID = item.Item_ID
+LEFT JOIN R_C_Cat cat on mi.Fam_Grp_ID = cat.Fam_Grp_ID
+LEFT JOIN R_D_Dept dept on cat.Maj_Grp_ID = dept.Maj_Grp_ID
+WHERE item.void_type <> 1 and item.void_type <> 4 and item.void_type <> 5
+GROUP BY dept.Maj_Grp_Name
+
+UNION ALL
+
+/* Discounts */
+SELECT 
+'Discounts' as Category,
+d_def.Name as Name,
+dept.Maj_Grp_Name as SalesCategory,
+SUM(item.Discount_Amount) as Amount
+FROM OIT_ITEM item
+LEFT JOIN MI_EXP mi on mi.Item_ID = item.Item_ID
+LEFT JOIN R_C_Cat cat on mi.Fam_Grp_ID = cat.Fam_Grp_ID
+LEFT JOIN R_D_Dept dept on cat.Maj_Grp_ID = dept.Maj_Grp_ID
+LEFT JOIN Discount_def d_def on d_def.ID = item.Discount_ID
+WHERE item.Discount_Amount <> '0.0'
+GROUP BY d_Def.Name, dept.Maj_Grp_Name
+
+UNION ALL 
+
+/* Tenders */
+SELECT 
+'Tenders' as Category,
+COALESCE(t_def.Name,'Unknown') as Name,
+NULL as SalesCategory,
+SUM(tndr.Tender_Amount - tndr.Change_Due) as Amount
+FROM OTN_Tender tndr
+LEFT JOIN Tender_def t_def on t_def.ID = tndr.Tender_ID
+WHERE tndr.Tender_Amount <> '0.0'
+GROUP BY t_def.Name
+
+UNION ALL
+/* Taxes */
+SELECT 
+'Taxes' as Category,
+'Taxes' as Name,
+NULL as SalesCategory,
+SUM(tndr.Tax_Amount) as Amount
+FROM OTN_Tender tndr
+WHERE tndr.Tax_Amount <> '0.0'
+
+UNION ALL
+
+/* Tips */
+SELECT 
+'Tips' as Category,
+'Tips' as Name,
+NULL as SalesCategory,
+SUM(tndr.Tip_Amount) as Amount
+FROM OTN_Tender tndr
+WHERE tndr.Tip_Amount <> '0.0'
+
+UNION ALL
+
+/* Service Charges */
+SELECT 
+'Service Charges' as Category,
+'Service Charges' as Name,
+NULL as SalesCategory,
+SUM(tndr.Svc_Chg_Amount) as Amount
+FROM OTN_Tender tndr
+WHERE tndr.Svc_Chg_Amount <> '0.0'

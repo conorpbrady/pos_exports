@@ -1,0 +1,5 @@
+"D",1,"Food"
+"D",2,"Beverage"
+"D",3,"Soda/Non-Alcoholic Beverage"
+"D",4,"Other"
+"D",5,"Admission"

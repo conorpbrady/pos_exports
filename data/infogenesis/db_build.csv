@@ -1,0 +1,20 @@
+File Name,Row Number,Field Name,Type
+R_D_Dept.txt,2,Maj_Grp_ID,INTEGER
+R_D_Dept.txt,3,Maj_Grp_Name,TEXT
+R_C_Cat.txt,2,Fam_Grp_ID,INTEGER
+R_C_Cat.txt,3,Fam_Grp_Name,TEXT
+R_C_Cat.txt,4,Maj_Grp_ID,INTEGER
+MI_Exp.txt,2,Item_ID,INTEGER
+MI_Exp.txt,3,Item_Name,TEXT
+MI_Exp.txt,9,Fam_Grp_ID,INTEGER
+OTN_Tender.txt,4,Tender_ID,INTEGER
+OTN_Tender.txt,5,Tender_Amount,REAL
+OTN_Tender.txt,8,Tax_Amount,REAL
+OTN_Tender.txt,10,Svc_Chg_Amount,REAL
+OTN_Tender.txt,11,Tip_Amount,REAL
+OTN_Tender.txt,16,Change_Due,REAL
+OIT_Item.txt,4,Item_ID,INTEGER
+OIT_Item.txt,6,Sales_Amount,REAL
+OIT_Item.txt,7,Discount_Amount,REAL
+OIT_Item.txt,8,Discount_ID,INTEGER
+OIT_Item.txt,16,Void_Type,INTEGER
