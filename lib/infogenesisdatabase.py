@@ -2,17 +2,25 @@ import sqlite3
 import csv
 
 class InfogenesisDatabase():
-    def __init__(self):
-        self.connection = sqlite3.connect('data\\infogenesis\\temp.db')
+    def __init__(self, db_filename):
+        self.connection = sqlite3.connect(db_filename)
         self.table_create_queries = []
         self.column_headers = {}
         self.data_insert_values = {}
         self.tables = []
 
+    def run_query(self, query):
+        cur = self.connection.cursor()
+        cur.execute(query)
+
+        # cur.fetchall returns tuples - convert to list then return
+        return [list(r) for r in cur.fetchall()]
+        
     def create_tables(self):
         for query in self.table_create_queries:
             cur = self.connection.cursor()
             cur.execute(query)
+   
 
     def insert_values(self):  
         for table in self.tables:
@@ -20,7 +28,6 @@ class InfogenesisDatabase():
             blank_values = ['?'] * len(self.data_insert_values[table][0])      
             query = "INSERT INTO {} ({}) VALUES({})".format(table, ','.join(self.column_headers[table]),','.join(blank_values))
             cur.executemany(query, self.data_insert_values[table])
-            print(cur.rowcount)
             self.connection.commit()
                 
     def init_queries(self):
@@ -30,7 +37,7 @@ class InfogenesisDatabase():
     def definition_table_queries(self,filenames):
         for file in filenames:
             with open(file,'r') as r:
-                csv_reader = csv.reader(r)
+                csv_reader = csv.reader(r, quotechar='"')
                 for row in csv_reader:
                     table = row[1]
                     break
@@ -42,7 +49,7 @@ class InfogenesisDatabase():
 
     def data_table_queries(self):
         with open('data\\infogenesis\\db_build.csv','r') as r:
-            csv_reader = csv.reader(r)
+            csv_reader = csv.reader(r, quotechar='"')
             tables = {}
             next(csv_reader,None) # Skip Headers
 
@@ -76,12 +83,13 @@ class InfogenesisDatabase():
             
         with open(path + filename,'r') as r:
             quoted_list = [line.replace('{','|').replace('}','|') for line in list(r)]
+            
             csv_reader = csv.reader(quoted_list, quotechar='|')
             if skip_headers: next(csv_reader, None)
             for row in csv_reader:
                 values = []
                 for row_number in row_numbers:
-                    values.append(row[int(row_number)-1].strip('$'))
+                    values.append(row[int(row_number)-1].strip('$').strip('"'))
                 data_values.append(tuple(values))
         return data_values
 

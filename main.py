@@ -30,6 +30,8 @@ def main():
 
 
     pos_type = config['General']['POS']
+
+           
     pos = PointOfSale.pos_class(pos_type, config[pos_type])
 
     pos.set_run_date(run_date)

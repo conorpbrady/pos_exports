@@ -21,7 +21,7 @@ class PointOfSale:
             return micros3700.Micros3700(config)
         elif pos_type.lower() == 'infogenesis':
             from lib.infogenesis import Infogenesis
-            return infogenesis.Infogenesis(config)
+            return Infogenesis(config)
 
     def __init__(self):
         pass
@@ -38,7 +38,8 @@ class PointOfSale:
         pass
 
     def format_data(self):
-        pass
+        for i, row in enumerate(self.results):
+            self.results[i] = map(self.format_as_currency, row)
 
     def clean_up(self):
         pass
@@ -64,7 +65,7 @@ class PointOfSale:
         #  Should match: '4.0000','.0000','-3.2300004'
         #  Should not match: 'Tips','Hot and Sour Soup','3','Ch. Margaeux'
         #  RegEx: /(-?[0-9]*\.[0-9]+)/g
-        
+        string = str(string)
         pattern = re.compile('(-?[0-9]*\.[0-9]+)')
         return re.sub(pattern,
                       lambda match: '{0:.2f}'.format(float(match.group(0))),
