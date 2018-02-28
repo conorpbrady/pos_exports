@@ -8,9 +8,8 @@ class Simphony2(PointOfSale):
     def __init__(self, config):
         self.db_user = config['User']
         self.db_pass = config['Password']
-        self.results = []
-        self.sql_query = ''
-        self.query_path = config['QueryFilePath']
+
+        super().__init__(config)
 
     def set_run_date(self, date_to_run):
         self.start_date = date_to_run

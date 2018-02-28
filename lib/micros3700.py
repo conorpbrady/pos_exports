@@ -6,11 +6,10 @@ class Micros3700(PointOfSale):
         
         self.db_user = config['User']
         self.db_pass = config['Password']
-        self.db_name = config['Database']
-        self.query_path = config['QueryFilePath']
-        self.results = []
-        self.sql_query = ''
+        self.db_name = config['Database']\
         self.temp_file_path = 'temp_output.txt'
+        
+        super().__init__(config)
         
     def load_query_from_file(self):
         query_string = super().load_query_from_file()        

@@ -11,11 +11,10 @@ class Infogenesis(PointOfSale):
 
         self.file_path = config['SalesFilePath']
         self.db_definition = config['DatabaseDefinitionFile']
-        self.site_code = config['SiteCode']
-        self.sql_query = ''
-        self.query_path = config['QueryFilePath']
-        self.results = []
         self.ig_db = InfogenesisDatabase('temp\\temp.db')
+        self.site_code = config['SiteCode']
+        
+        super().__init__(config)
 
     def create_database(self):
 
@@ -24,17 +23,16 @@ class Infogenesis(PointOfSale):
         self.ig_db.insert_values()
         
     def gather_pos_data(self):
+
         self.get_files_from_zip()
-        
         self.create_database()
         self.results = self.ig_db.run_query(super().load_query_from_file())
 
-    def clean_up(self):
-        
+    def clean_up(self):    
+
         self.ig_db.close()
-        # get dir listing of temp
-        # use to remove
-        os.remove('temp\\temp.db')
+        for file in os.listdir('temp\\'):
+            os.remove('temp\\{}'.format(file))
 
 
     def get_files_from_zip(self):

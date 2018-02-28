@@ -23,8 +23,10 @@ class PointOfSale:
             from lib.infogenesis import Infogenesis
             return Infogenesis(config)
 
-    def __init__(self):
-        pass
+    def __init__(self, config):
+        self.results = []
+        self.sql_query = ''
+        self.query_path = config['QueryFilePath']
 
     def set_run_date(self, run_date):
         self.business_date = run_date
