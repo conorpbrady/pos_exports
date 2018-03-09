@@ -1,4 +1,7 @@
 from lib.pointofsale import PointOfSale
+import subprocess
+import csv
+import os
 
 class Micros3700(PointOfSale):
 
@@ -6,7 +9,7 @@ class Micros3700(PointOfSale):
         
         self.db_user = config['User']
         self.db_pass = config['Password']
-        self.db_name = config['Database']\
+        self.db_name = config['Database']
         self.temp_file_path = 'temp_output.txt'
         
         super().__init__(config)

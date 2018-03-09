@@ -18,7 +18,7 @@ class PointOfSale:
             return Simphony2(config)
         elif pos_type.lower() == 'micros3700':
             from lib.micros3700 import Micros3700
-            return micros3700.Micros3700(config)
+            return Micros3700(config)
         elif pos_type.lower() == 'infogenesis':
             from lib.infogenesis import Infogenesis
             return Infogenesis(config)

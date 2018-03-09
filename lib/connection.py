@@ -32,9 +32,12 @@ class FTP(Connection):
         self.port = int(config['Port'])
         self.user = config['User']
         self.password = config['Password']
-        self.use_ssl = (config['UseSSL'] == '1' or
-                        config['UseSSL'].lower == 'true')
+        self.set_ssl(config)
         super().__init__(config['Host'])
+
+    def set_ssl(self, config):
+            self.use_ssl = (config['UseSSL'] == '1' or
+                            config['UseSSL'].lower == 'true')
 
     def connect(self):
         if self.use_ssl:
@@ -62,7 +65,10 @@ class FTP(Connection):
 class SFTP(FTP):
 
     def __init__(self, config):
-        super().__init(config)
+        super().__init__(config)
+
+    def set_ssl(self, config):
+        pass
 
     def connect(self):
         self.transport = paramiko.Transport(self.host,self.port)        
